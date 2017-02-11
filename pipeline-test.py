@@ -12,8 +12,8 @@ frame = cv2.VideoCapture('https://frc:frc@10.17.11.11/mjpg/video.mjpg')
 
 if(frame == None):
     print("error: camera not found. check connection")
-pipeline = GripPipeline()
-#pipeline = VisionProcessor()
+#pipeline = GripPipeline()
+pipeline = VisionProcessor()
 
 #frame = cv2.imread('download.jpg', 1)
 
