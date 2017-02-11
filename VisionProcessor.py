@@ -19,12 +19,34 @@ publish/return contours somehow (networktables??)
     '''
         
     def process(self, frame):
-        blur_output = self.blur(frame, 20)
+        blur_output = self.blur(frame)
         print(blur_output)
 
-    def blur(self, frame, blur_radius):
+    def blur(self, source):
         #using a median filter
- #       ksize = 2 * blur_radius + 1
-        #returns a type of array
-        return cv2.medianBlur(frame, 3)
+        return cv2.medianBlur(frame, 9)
+    
+    def hsv_threshold(self, source):
+        #current exposure setting on axis camera: 8
+        hue = [120.0, 179.0]
+        sat = [0, 255.0]
+        val = [0, 255.0]
+
+        out = cv2.cvtColor(source, cv2.COLOR_BGR2HSV)
+        return cv2.inRange(source, (hue[0], sat[0], val[0]), (hue[1], sat[1], val[1]))
+
+    def find_contours(source, external_only):
+        if(external_only):
+            mode = cv2.RETR_EXTERNAL
+        else:
+            mode = cv2.RETR_LIST
+        method = cv2.CHAIN_APPROX_SIMPLE
+        im2, contours, hierarchy = cv2.findContours(source, mode=mode, method=method)
+        cv2.imshow('contours', im2)
+        cv2.waitKey(0)
+        #when the garbage collector comes for you, there is no hope
+        cv2.destroyAllWindows()
+        return contours
+
+    
     

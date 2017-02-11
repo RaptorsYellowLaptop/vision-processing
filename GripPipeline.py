@@ -29,7 +29,7 @@ class GripPipeline:
         self.__filter_contours_contours = self.find_contours_output
         self.__filter_contours_min_area = 500.0
         self.__filter_contours_min_perimeter = 0.0
-        self.__filter_contours_min_width = 0.0
+        self.__filter_contours_min_width = 100.0
         self.__filter_contours_max_width = 1000.0
         self.__filter_contours_min_height = 0.0
         self.__filter_contours_max_height = 1000.0
@@ -48,7 +48,7 @@ class GripPipeline:
         """
         # Step Blur0:
         self.__blur_input = source0
-        (self.blur_output) = source0 #self.__blur(self.__blur_input, self.__blur_type, self.__blur_radius)
+        (self.blur_output) = self.__blur(self.__blur_input, self.__blur_type, self.__blur_radius)
         cv2.imshow('blur', self.blur_output)
         cv2.waitKey(0)
         cv2.destroyAllWindows()
@@ -57,19 +57,17 @@ class GripPipeline:
         self.__hsv_threshold_input = self.blur_output
         (self.hsv_threshold_output) = self.__hsv_threshold(self.__hsv_threshold_input)
         print("hsv threshold")
-        cv2.imshow('image', self.hsv_threshold_output)
+        cv2.imshow('hsv threshold', self.hsv_threshold_output)
         cv2.waitKey(0)
         cv2.destroyAllWindows()
 
         # Step Find_Contours0:
         self.__find_contours_input = self.hsv_threshold_output
         (self.find_contours_output) = self.__find_contours(self.__find_contours_input, self.__find_contours_external_only)
-#        print(self.find_contours_output)
 
         # Step Filter_Contours0:
         self.__filter_contours_contours = self.find_contours_output
         (self.filter_contours_output) = self.__filter_contours(self.__filter_contours_contours, self.__filter_contours_min_area, self.__filter_contours_min_perimeter, self.__filter_contours_min_width, self.__filter_contours_max_width, self.__filter_contours_min_height, self.__filter_contours_max_height, self.__filter_contours_solidity, self.__filter_contours_max_vertices, self.__filter_contours_min_vertices, self.__filter_contours_min_ratio, self.__filter_contours_max_ratio)
-#        print(self.filter_contours_output)
         
 
     @staticmethod
@@ -91,7 +89,7 @@ class GripPipeline:
         elif(type is BlurType.Median_Filter):
             ksize = int(2 * round(radius) + 1)
             #this is sketchy
-            return cv2.medianBlur(src, ksize)
+            return cv2.medianBlur(src, 9)
         else:
             return cv2.bilateralFilter(src, -1, round(radius), round(radius))
 
@@ -107,8 +105,7 @@ class GripPipeline:
         Returns:
             A black and white numpy.ndarray.
         """
-        print(input)
-        hue = [60.0, 100.0]
+        hue = [120.0, 179.0]
 #        hue = [72.84172661870504, 86.31399317406144]
 #       sat for later: 199.50539568345323
 #       val for later: 89.43345323741006
@@ -133,6 +130,10 @@ class GripPipeline:
             mode = cv2.RETR_LIST
         method = cv2.CHAIN_APPROX_SIMPLE
         im2, contours, hierarchy =cv2.findContours(input, mode=mode, method=method)
+        cv2.imshow('contours', im2)
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
+        #when the garbage collector comes for you, there is no hope
         return contours
 
     @staticmethod
@@ -178,6 +179,7 @@ class GripPipeline:
             if (ratio < min_ratio or ratio > max_ratio):
                 continue
             output.append(contour)
+        print(output)
         return output
 
 
