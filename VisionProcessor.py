@@ -20,21 +20,21 @@ publish/return contours somehow (networktables??)
         
     def process(self, frame):
         blur_output = self.blur(frame)
-        cv2.imshow('blur', blur_output)
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
+#        cv2.imshow('blur', blur_output)
+#        cv2.waitKey(0)
+#        cv2.destroyAllWindows()
 
         hsv_output = self.hsv_threshold(blur_output)
-        cv2.imshow('hsv threshold', hsv_output)
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
+#        cv2.imshow('hsv threshold', hsv_output)
+#        cv2.waitKey(0)
+#        cv2.destroyAllWindows()
 
         contours = self.find_contours(hsv_output, False)
 
         filtered_contours = self.filter_contours(contours, blur_output)
 
-#        center_points = self.find_center(filtered_contours, blur_output)
-
+        center_points = self.find_center(filtered_contours, blur_output)
+        return center_points
 
     def blur(self, source):
         #using a median filter
@@ -58,65 +58,67 @@ publish/return contours somehow (networktables??)
             mode = cv2.RETR_TREE #or LIST
         method = cv2.CHAIN_APPROX_SIMPLE
         im2, contours, hierarchy = cv2.findContours(source, mode=mode, method=method)
-        cv2.drawContours(source, contours, -1, (255, 0 , 0), 1)
-        cv2.imshow('contours', im2)
-        cv2.waitKey(0)
+#        cv2.drawContours(source, contours, -1, (255, 0 , 0), 1)
+#        cv2.imshow('contours', im2)
+#        cv2.waitKey(0)
         #when the garbage collector comes for you, there is no hope
-        cv2.destroyAllWindows()
+#        cv2.destroyAllWindows()
         return contours
 
 
     def filter_contours(self, input_contours, image_underlay):
         output = []
-        min_width = 100
-        max_width = 10000
-        min_height = 50
-        max_height = 10000
-        min_perimeter = 0
-#        min_solidity = 0
-#        max_solidity = 100
+        min_solidity = 80
+        max_solidity = 100
         min_ratio = 2.3
-        max_ratio = 2.6
+        max_ratio = 3.0
         for contour in input_contours:
             #(x, y) is the top left coordinate of the image
             x,y,w,h = cv2.boundingRect(contour)
-#            if (w < min_width or w > max_width):
-#                continue
-#            if (h < min_height or h > max_height):
-#                continue
-#            perimeter = cv2.arcLength(contour, True)
             ratio = (float)(w) / h
 #            print(ratio)
             if(ratio < min_ratio or ratio > max_ratio):
                 continue
-            #we can use these later if we need to
-#            area = cv2.contourArea(contour)
-#            if (cv2.arcLength(contour, True) < min_perimeter):
-#                continue
-#            hull = cv2.convexHull(contour)
-#            solid = 100 * area / cv2.contourArea(hull)
-#            if (solid < min_solidity or solid > max_solidity):
-#                continue
+            area = cv2.contourArea(contour)
+            hull = cv2.convexHull(contour)
+            contour_area = cv2.contourArea(hull)
+            if(contour_area > 0):
+                solid = 100 * area / cv2.contourArea(hull)
+#                print(solid)
+                if (solid < min_solidity or solid > max_solidity):
+                    continue
+            else:
+                continue
             output.append(contour)
-        cv2.drawContours(image_underlay, output, -1, (255, 0 , 0), 3)
-        cv2.imshow('contours', image_underlay)
-        cv2.waitKey(0)
+#        cv2.drawContours(image_underlay, output, -1, (255, 0 , 0), 3)
+#        cv2.imshow('contours', image_underlay)
+#        cv2.waitKey(0)
         #when the garbage collector comes for you, there is no hope
-        cv2.destroyAllWindows()
+#        cv2.destroyAllWindows()
         return output
 
 
     def find_center(self, filtered_contours, image_underlay):
         center_points = []
+        largest_contour = [0, 0]
         for contour in filtered_contours:
             x,y,w,h = cv2.boundingRect(contour)
-            center_width = x + (w / 2)
-            center_height = y - (h / 2)
+            center_width = (int)(x + (w / 2))
+            center_height = (int)(y + (h / 2))
             coordinate = [center_width, center_height]
-            center_points.append(coordinate)
-        cv2.drawContours(image_underlay, center_points, -1, (255, 0, 0), 3)
-        cv2.imshow('centers', image_underlay)
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
+            i = 0
+            for point in coordinate:
+                if (point > largest_contour[i]):
+                    if(i == 0):
+                        i = i + 1
+                        continue
+                    else:
+                        center_points = coordinate
+                else:
+                    break
+#            cv2.circle(image_underlay, (center_width, center_height), 1, (255, 0, 0), -1)
+#        cv2.imshow('centers', image_underlay)
+#        cv2.waitKey(0)
+#        cv2.destroyAllWindows()
         return center_points
     
