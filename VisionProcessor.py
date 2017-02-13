@@ -46,7 +46,7 @@ publish/return contours somehow (networktables??)
         hue = [120.0, 150.0]
         sat = [0, 255.0]
         val = [0, 170.0]
-
+        #convert to HSV colorspace
         out = cv2.cvtColor(source, cv2.COLOR_BGR2HSV)
         return cv2.inRange(source, (hue[0], sat[0], val[0]), (hue[1], sat[1], val[1]))
 
