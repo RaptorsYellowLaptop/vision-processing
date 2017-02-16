@@ -19,22 +19,26 @@ publish/return contours somehow (networktables??)
     '''
         
     def process(self, frame):
-        blur_output = self.blur(frame)
-#        cv2.imshow('blur', blur_output)
-#        cv2.waitKey(0)
-#        cv2.destroyAllWindows()
+        try:
+            blur_output = self.blur(frame)
+#           cv2.imshow('blur', blur_output)
+#           cv2.waitKey(0)
+#           cv2.destroyAllWindows()
 
-        hsv_output = self.hsv_threshold(blur_output)
-#        cv2.imshow('hsv threshold', hsv_output)
-#        cv2.waitKey(0)
-#        cv2.destroyAllWindows()
+            hsv_output = self.hsv_threshold(blur_output)
+#           cv2.imshow('hsv threshold', hsv_output)
+#           cv2.waitKey(0)
+#           cv2.destroyAllWindows()
 
-        contours = self.find_contours(hsv_output, False)
-
-        filtered_contours = self.filter_contours(contours, blur_output)
-
-        center_points = self.find_center(filtered_contours, blur_output)
-        return center_points
+            contours = self.find_contours(hsv_output, False)
+            
+            filtered_contours = self.filter_contours(contours, blur_output)
+            
+            center_points = self.find_center(filtered_contours, blur_output)
+            return center_points
+        except (UnboundLocalError, TypeError):
+            print('Target not found')
+        
 
     def blur(self, source):
         #using a median filter
@@ -45,7 +49,7 @@ publish/return contours somehow (networktables??)
         #current exposure setting on axis camera: 8
         hue = [120.0, 150.0]
         sat = [0, 255.0]
-        val = [0, 170.0]
+        val = [0, 255.0]
         #convert to HSV colorspace
         out = cv2.cvtColor(source, cv2.COLOR_BGR2HSV)
         return cv2.inRange(source, (hue[0], sat[0], val[0]), (hue[1], sat[1], val[1]))
@@ -76,6 +80,7 @@ publish/return contours somehow (networktables??)
             #(x, y) is the top left coordinate of the image
             x,y,w,h = cv2.boundingRect(contour)
             ratio = (float)(w) / h
+#            print("ratio")
 #            print(ratio)
             if(ratio < min_ratio or ratio > max_ratio):
                 continue
@@ -84,6 +89,7 @@ publish/return contours somehow (networktables??)
             contour_area = cv2.contourArea(hull)
             if(contour_area > 0):
                 solid = 100 * area / cv2.contourArea(hull)
+#                print("solid")
 #                print(solid)
                 if (solid < min_solidity or solid > max_solidity):
                     continue
@@ -103,11 +109,12 @@ publish/return contours somehow (networktables??)
         largest_contour = [0, 0]
         for contour in filtered_contours:
             x,y,w,h = cv2.boundingRect(contour)
+            size = [w, h]
             center_width = (int)(x + (w / 2))
             center_height = (int)(y + (h / 2))
             coordinate = [center_width, center_height]
             i = 0
-            for point in coordinate:
+            for point in size:
                 if (point > largest_contour[i]):
                     if(i == 0):
                         i = i + 1
@@ -120,5 +127,5 @@ publish/return contours somehow (networktables??)
 #        cv2.imshow('centers', image_underlay)
 #        cv2.waitKey(0)
 #        cv2.destroyAllWindows()
-        return center_points
+        return center_points, size, y
     
