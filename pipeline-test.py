@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+
 import numpy
 import math
 import cv2
@@ -61,6 +63,7 @@ while x:
     img = get_image()
     print("image gotten")
     center_point = [160, 120]
+    file = open('output.txt', 'a')
     try:
         current_point, size, y = pipeline.process(img)
         #negative means turn left, positive means turn right
@@ -73,12 +76,17 @@ while x:
         distance = find_distance(target_width, target_height, y)
         n.distance_from_target = distance
         print("angle")
+        file.write("angle: ")
         print(n.angle_difference)
-        print("distance")
+        file.write(str(angle_difference))
+        print(" distance: ")
+        file.write("distance")
         print(distance)
+        file.write(str(distance))
+        file.write("\n")
     except UnboundLocalError:
         print(":(")
-    except (TypeError) as e:
+    except (TypeError, cv2.error) as e:
         print(":(")
     
 #    x = False
