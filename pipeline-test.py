@@ -28,6 +28,7 @@ while(connected == False):
 class NTClient(object):
     angle_difference = ntproperty('/Raspberry Pi/angle difference', 0)
     distance_from_target = ntproperty('/Raspberry Pi/distance from target', 0)
+    counter = ntproperty('/Raspberry Pi/reliability counter', 0)
 
 n = NTClient()
 
@@ -78,7 +79,7 @@ while x:
     print("image gotten")
     center_point = [160, 120]
     try:
-        file = open('/home/pi/python/output.txt', 'a')
+'''        file = open('/home/pi/python/output.txt', 'a') '''
         current_point, size, y = pipeline.process(img)
         #negative means turn left, positive means turn right
         pixel_difference = center_point[0] - current_point[0]
@@ -89,7 +90,8 @@ while x:
         target_height = size[1]
         distance = find_distance(target_width, y)
         n.distance_from_target = distance
-        print("angle")
+        n.counter += 1
+'''        print("angle")
         file.write("angle: ")
         print(n.angle_difference)
         file.write(str(angle_difference))
@@ -98,7 +100,7 @@ while x:
         print(distance)
         file.write(str(distance))
         file.write("\n")
-        file.close()
+        file.close() '''
     except UnboundLocalError:
         print(":(")
     except (TypeError, cv2.error) as e:
